@@ -1,35 +1,26 @@
-
 {
-  "name": "Azure Terraform Environment",
-  // Use a common base image that includes the Azure CLI
+  "name": "Azure Terraform Universal Environment",
+  // Use the reliable Universal base image
   "image": "mcr.microsoft.com",
   
   "features": {
-    // Install the latest version of the Terraform CLI
+    // This image already has Azure CLI and Terraform, but we explicitly request the latest version
     "ghcr.io/devcontainers/features/terraform:1": {
       "version": "latest",
       "tflint": "latest"
     }
   },
 
-  // Configure VS Code customizations
   "customizations": {
     "vscode": {
-      // Add relevant VS Code extensions for Terraform and Azure
       "extensions": [
         "hashicorp.terraform",
         "ms-azuretools.vscode-azureaccount",
-        "ms-azuretools.vscode-azurecli",
         "ms-azuretools.azure-resource-groups"
       ],
       "settings": {
-        // Optional: Add specific settings for Terraform extension
-        "terraform.validateOnSave": true,
-        "terraform.indexingGoSubmodules": true
+        "terraform.validateOnSave": true
       }
     }
-  },
-
-  // Use 'postCreateCommand' to run commands after the container is created, e.g., install providers
-  // "postCreateCommand": "terraform init" 
+  }
 }
