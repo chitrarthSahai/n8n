@@ -10,16 +10,11 @@ resource "azurerm_container_app" "n8n_app" {
   container_app_environment_id = azurerm_container_app_environment.n8n_env.id
   resource_group_name          = azurerm_resource_group.rg_n8n.name
   revision_mode                = "Single"
+  workload_profile_name         = "Consumption"
 
   template {
     min_replicas = 0
     max_replicas = 1
-
-    volume {
-      name         = "n8n-data"
-      storage_name = "n8n-storage"
-      storage_type = "AzureFile"
-    }
 
     container {
       name   = "n8n"
@@ -27,11 +22,45 @@ resource "azurerm_container_app" "n8n_app" {
       cpu    = 0.25
       memory = "0.5Gi"
 
-      # n8n Configuration Environment Variables - SQLite (default)
-      # DB_TYPE defaults to sqlite if not specified
+      # n8n Configuration Environment Variables - Postgres
       env {
         name  = "DB_TYPE"
-        value = "sqlite"
+        value = "postgresdb"
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_HOST"
+        value = azurerm_postgresql_flexible_server.n8n_pg.fqdn
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_PORT"
+        value = "5432"
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_DATABASE"
+        value = var.pg_database_name
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_USER"
+        value = var.pg_admin_user
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_PASSWORD"
+        value = local.pg_admin_password_effective
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_SCHEMA"
+        value = "public"
+      }
+
+      env {
+        name  = "DB_POSTGRESDB_SSL_ENABLED"
+        value = "true"
       }
 
       env {
@@ -93,19 +122,15 @@ resource "azurerm_container_app" "n8n_app" {
 
       env {
         name  = "N8N_ENCRYPTION_KEY"
-        value = random_password.n8n_encryption_key.result
+        value = coalesce(var.n8n_encryption_key, random_password.n8n_encryption_key.result)
       }
 
       env {
         name  = "N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS"
-        value = "true"
+        value = "false"
       }
 
-      # Volume mounts for Azure file share
-      volume_mounts {
-        name = "n8n-data"
-        path = "/home/node/.n8n"
-      }
+      # SQLite-specific tuning removed because Postgres is now used
     }
   }
 
@@ -126,6 +151,7 @@ resource "azurerm_container_app" "n8n_app" {
   tags = var.tags
 
   depends_on = [
-    azurerm_container_app_environment_storage.n8n_storage
+    azurerm_postgresql_flexible_server.n8n_pg,
+    azurerm_postgresql_flexible_server_database.n8n_db
   ]
 }

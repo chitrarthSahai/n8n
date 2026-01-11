@@ -35,3 +35,54 @@ variable "latest_tag" {
   default     = "latest"
 }
 
+# Optional static encryption key for n8n. If empty, a random key is generated.
+variable "n8n_encryption_key" {
+  type        = string
+  description = "Optional stable encryption key for n8n. If empty, Terraform generates one."
+  default     = ""
+}
+
+# Postgres configuration (used when DB_TYPE=postgresdb)
+variable "pg_admin_user" {
+  type        = string
+  description = "Postgres admin username"
+  default     = "n8nadmin"
+}
+
+variable "pg_admin_password" {
+  type        = string
+  description = "Postgres admin password. If empty, Terraform generates one."
+  default     = ""
+  sensitive   = true
+}
+
+variable "pg_database_name" {
+  type        = string
+  description = "Postgres database name"
+  default     = "n8ndb"
+}
+
+variable "pg_version" {
+  type        = string
+  description = "Postgres version"
+  default     = "16"
+}
+
+variable "pg_sku_name" {
+  type        = string
+  description = "Postgres SKU (e.g., B_Standard_B1ms for low cost)"
+  default     = "B_Standard_B1ms"
+}
+
+variable "pg_storage_mb" {
+  type        = number
+  description = "Postgres storage in MB"
+  default     = 32768
+}
+
+variable "pg_backup_retention_days" {
+  type        = number
+  description = "Backup retention days for Postgres"
+  default     = 7
+}
+
