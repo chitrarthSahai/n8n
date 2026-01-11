@@ -1,65 +1,42 @@
+# Generate random encryption key for n8n
+resource "random_password" "n8n_encryption_key" {
+  length  = 32
+  special = true
+}
+
 # n8n Container App
 resource "azurerm_container_app" "n8n_app" {
-  name                         = "ca-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
+  name                         = "${var.app_name}-app-${random_string.unique_suffix.result}"
   container_app_environment_id = azurerm_container_app_environment.n8n_env.id
   resource_group_name          = azurerm_resource_group.rg_n8n.name
   revision_mode                = "Single"
-  workload_profile_name        = "Consumption"
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.container_app_identity.id]
-  }
-
-  registry {
-    server   = azurerm_container_registry.acr_n8n.login_server
-    identity = azurerm_user_assigned_identity.container_app_identity.id
-  }
 
   template {
-    min_replicas = 1
-    max_replicas = 3
+    min_replicas = 0
+    max_replicas = 1
+
+    volume {
+      name         = "n8n-data"
+      storage_name = "n8n-storage"
+      storage_type = "AzureFile"
+    }
 
     container {
       name   = "n8n"
-      image  = "${azurerm_container_registry.acr_n8n.login_server}/n8n:${var.latest_tag}"
-      cpu    = 1.0
-      memory = "2Gi"
+      image  = "docker.io/n8nio/n8n:${var.latest_tag}"
+      cpu    = 0.25
+      memory = "0.5Gi"
 
-      # n8n Configuration Environment Variables
+      # n8n Configuration Environment Variables - SQLite (default)
+      # DB_TYPE defaults to sqlite if not specified
       env {
         name  = "DB_TYPE"
-        value = "postgresdb"
-      }
-
-      env {
-        name  = "DB_POSTGRESDB_HOST"
-        value = azurerm_postgresql_flexible_server.postgresql_server.fqdn
-      }
-
-      env {
-        name  = "DB_POSTGRESDB_PORT"
-        value = "5432"
-      }
-
-      env {
-        name  = "DB_POSTGRESDB_DATABASE"
-        value = azurerm_postgresql_flexible_server_database.n8n_database.name
-      }
-
-      env {
-        name  = "DB_POSTGRESDB_USER"
-        value = var.postgresql_admin_username
-      }
-
-      env {
-        name        = "DB_POSTGRESDB_PASSWORD"
-        secret_name = "postgres-password"
+        value = "sqlite"
       }
 
       env {
         name  = "N8N_HOST"
-        value = "${module.resource_name.n8n.container_app}.${azurerm_container_app_environment.n8n_env.default_domain}"
+        value = "https://${var.app_name}-app.${azurerm_container_app_environment.n8n_env.default_domain}"
       }
 
       env {
@@ -74,8 +51,7 @@ resource "azurerm_container_app" "n8n_app" {
 
       env {
         name  = "WEBHOOK_URL"
-        #value = "https://${module.resource_name.n8n.container_app}.${azurerm_container_app_environment.n8n_env.default_domain}"
-        value = "https://afd-n8n-pe-dev-cmg6bbb3fycfeth8.a02.azurefd.net"
+        value = "https://${var.app_name}-app.${azurerm_container_app_environment.n8n_env.default_domain}"
       }
 
       # Security and Performance
@@ -116,43 +92,24 @@ resource "azurerm_container_app" "n8n_app" {
       }
 
       env {
-        name        = "N8N_ENCRYPTION_KEY"
-        secret_name = "n8n-encryption-key"
-      }
-
-      env {
-        name  = "DB_POSTGRESDB_CONNECTION_TIMEOUT"
-        value = "600000"
-      }
-
-      env {
-        name  = "DB_POSTGRESDB_SSL"
-        value = "true"
-      }
-
-      env {
-        name  = "DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED"
-        value = "false"
+        name  = "N8N_ENCRYPTION_KEY"
+        value = random_password.n8n_encryption_key.result
       }
 
       env {
         name  = "N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS"
         value = "true"
       }
+
+      # Volume mounts for Azure file share
+      volume_mounts {
+        name = "n8n-data"
+        path = "/home/node/.n8n"
+      }
     }
   }
 
-  secret {
-    name                = "postgres-password"
-    key_vault_secret_id = azurerm_key_vault_secret.postgresql_admin_password.versionless_id
-    identity            = azurerm_user_assigned_identity.container_app_identity.id
-  }
 
-  secret {
-    name                = "n8n-encryption-key"
-    key_vault_secret_id = azurerm_key_vault_secret.n8n_encryption_key.versionless_id
-    identity            = azurerm_user_assigned_identity.container_app_identity.id
-  }
 
   ingress {
     allow_insecure_connections = false
@@ -169,11 +126,6 @@ resource "azurerm_container_app" "n8n_app" {
   tags = var.tags
 
   depends_on = [
-    azurerm_postgresql_flexible_server.postgresql_server,
-    azurerm_postgresql_flexible_server_database.n8n_database,
-    azurerm_key_vault_secret.postgresql_admin_password,
-    azurerm_key_vault_secret.n8n_encryption_key,
-    null_resource.import_n8n_image,
-    azurerm_private_endpoint.keyvault_private_endpoint
+    azurerm_container_app_environment_storage.n8n_storage
   ]
 }
