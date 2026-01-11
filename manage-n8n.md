@@ -7,7 +7,7 @@
 az postgres flexible-server start --resource-group n8n-rg --name n8n-pg-wv62
 
 # 2. Start Container App (requires subscription ID)
-az rest --method post --url "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/n8n-rg/providers/Microsoft.App/containerApps/n8n-app-wv62/start?api-version=2024-03-01"
+az rest --method post --url "/subscriptions/2c27d2a3-d8ff-483e-8d3e-74d599e1e421/resourceGroups/n8n-rg/providers/Microsoft.App/containerApps/n8n-app-wv62/start?api-version=2024-03-01"
 
 # 3. Get app URL
 az containerapp show --resource-group n8n-rg --name n8n-app-wv62 --query 'properties.configuration.ingress.fqdn' --output tsv
@@ -21,7 +21,7 @@ az postgres flexible-server start --resource-group n8n-rg --name n8n-pg-wv62
 
 # 2. Start Container App
 $subscriptionId = az account show --query id -o tsv
-az rest --method post --url "/subscriptions/$subscriptionId/resourceGroups/n8n-rg/providers/Microsoft.App/containerApps/n8n-app-wv62/start?api-version=2024-03-01"
+az rest --method post --url "/subscriptions/2c27d2a3-d8ff-483e-8d3e-74d599e1e421/resourceGroups/n8n-rg/providers/Microsoft.App/containerApps/n8n-app-wv62/start?api-version=2024-03-01"
 
 # 3. Get app URL
 az containerapp show --resource-group n8n-rg --name n8n-app-wv62 --query 'properties.configuration.ingress.fqdn' --output tsv
@@ -31,7 +31,7 @@ az containerapp show --resource-group n8n-rg --name n8n-app-wv62 --query 'proper
 
 ```bash
 # 1. Stop Container App (requires subscription ID)
-az rest --method post --url "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/n8n-rg/providers/Microsoft.App/containerApps/n8n-app-wv62/stop?api-version=2024-03-01"
+az rest --method post --url "/subscriptions/2c27d2a3-d8ff-483e-8d3e-74d599e1e421/resourceGroups/n8n-rg/providers/Microsoft.App/containerApps/n8n-app-wv62/stop?api-version=2024-03-01"
 
 # 2. Stop PostgreSQL
 az postgres flexible-server stop --resource-group n8n-rg --name n8n-pg-wv62
