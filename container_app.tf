@@ -18,7 +18,7 @@ resource "azurerm_container_app" "n8n_app" {
 
     container {
       name   = "n8n"
-      image  = "docker.io/n8nio/n8n:${var.latest_tag}"
+      image  = "docker.io/n8nio/n8n"
       cpu    = 0.25
       memory = "0.5Gi"
 
@@ -118,6 +118,16 @@ resource "azurerm_container_app" "n8n_app" {
       env {
         name  = "N8N_LOG_OUTPUT"
         value = "console"
+      }
+
+      env {
+        name  = "N8N_TRUST_PROXY"
+        value = "true"
+      }
+
+      env {
+        name  = "N8N_PROXY_HOPS"
+        value = "1"
       }
 
       env {
