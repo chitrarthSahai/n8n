@@ -1,6 +1,3 @@
-# Fix SSL/TLS connectivity issues
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
-
 Write-Host "Stopping n8n infrastructure..." -ForegroundColor Cyan
 
 # 1. Stop Container App

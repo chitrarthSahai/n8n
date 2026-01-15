@@ -10,7 +10,7 @@ resource "azurerm_container_app" "n8n_app" {
   container_app_environment_id = azurerm_container_app_environment.n8n_env.id
   resource_group_name          = azurerm_resource_group.rg_n8n.name
   revision_mode                = "Single"
-  workload_profile_name         = "Consumption"
+  workload_profile_name        = "Consumption"
 
   template {
     min_replicas = 0
@@ -65,7 +65,7 @@ resource "azurerm_container_app" "n8n_app" {
 
       env {
         name  = "N8N_HOST"
-        value = "https://${var.app_name}-app.${azurerm_container_app_environment.n8n_env.default_domain}"
+        value = "https://${var.app_name}-app-${random_string.unique_suffix.result}.${azurerm_container_app_environment.n8n_env.default_domain}"
       }
 
       env {
@@ -80,7 +80,7 @@ resource "azurerm_container_app" "n8n_app" {
 
       env {
         name  = "WEBHOOK_URL"
-        value = "https://${var.app_name}-app.${azurerm_container_app_environment.n8n_env.default_domain}"
+        value = "https://${var.app_name}-app-${random_string.unique_suffix.result}.${azurerm_container_app_environment.n8n_env.default_domain}"
       }
 
       # Security and Performance
@@ -145,6 +145,15 @@ resource "azurerm_container_app" "n8n_app" {
     traffic_weight {
       latest_revision = true
       percentage      = 100
+    }
+
+    cors {
+      allowed_origins           = ["*"]
+      allowed_methods           = ["GET", "POST", "OPTIONS"]
+      allowed_headers           = ["*"]
+      exposed_headers           = []
+      max_age_in_seconds        = 0
+      allow_credentials_enabled = false
     }
   }
 
