@@ -1,8 +1,8 @@
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "postgresql_server" {
-  name                          = "pgsql-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
+  name                          = "db-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
   resource_group_name           = azurerm_resource_group.rg_n8n.name
-  location                      = azurerm_resource_group.rg_n8n.location
+  location                      = "eastus2"
   version                       = "16"
   delegated_subnet_id           = null
   private_dns_zone_id           = null
@@ -15,7 +15,7 @@ resource "azurerm_postgresql_flexible_server" "postgresql_server" {
   storage_mb   = 131072 # 128 GB
   storage_tier = "P10"
 
-  sku_name = "GP_Standard_D2ds_v5"
+  sku_name = "B_Standard_B1ms"
 
   backup_retention_days        = 7
   geo_redundant_backup_enabled = false
@@ -37,6 +37,10 @@ resource "azurerm_postgresql_flexible_server_active_directory_administrator" "po
   object_id           = var.admin_user_object_id
   principal_name      = var.admin_user_principal_name
   principal_type      = "User"
+
+  lifecycle {
+    ignore_changes = [principal_name]
+  }
 }
 
 # PostgreSQL Databases

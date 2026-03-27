@@ -14,10 +14,10 @@ output "private_dns_zones" {
       id   = azurerm_private_dns_zone.container_app_env.id
       name = azurerm_private_dns_zone.container_app_env.name
     }
-    container_registry = {
-      id   = azurerm_private_dns_zone.container_registry.id
-      name = azurerm_private_dns_zone.container_registry.name
-    }
+    # container_registry = {
+    #   id   = azurerm_private_dns_zone.container_registry.id
+    #   name = azurerm_private_dns_zone.container_registry.name
+    # }
   }
 }
 
@@ -49,10 +49,10 @@ output "subnets" {
 output "container_registry" {
   description = "Container registry information"
   value = {
-    id                  = azurerm_container_registry.acr_n8n.id
-    name                = azurerm_container_registry.acr_n8n.name
-    login_server        = azurerm_container_registry.acr_n8n.login_server
-    private_endpoint_ip = azurerm_private_endpoint.acr_private_endpoint.private_service_connection[0].private_ip_address
+    id           = azurerm_container_registry.acr_n8n.id
+    name         = azurerm_container_registry.acr_n8n.name
+    login_server = azurerm_container_registry.acr_n8n.login_server
+    # private_endpoint_ip removed - Basic SKU uses public access
   }
   sensitive = false
 }
@@ -118,7 +118,8 @@ output "key_vault" {
     private_endpoint_ip = azurerm_private_endpoint.keyvault_private_endpoint.private_service_connection[0].private_ip_address
     secret_names = [
       azurerm_key_vault_secret.postgresql_admin_password.name,
-      azurerm_key_vault_secret.n8n_encryption_key.name
+      azurerm_key_vault_secret.n8n_encryption_key.name,
+      azurerm_key_vault_secret.tiktok_api_key.name
     ]
   }
   sensitive = false
@@ -135,7 +136,24 @@ output "container_app" {
     outbound_ip_addresses        = azurerm_container_app.n8n_app.outbound_ip_addresses
     container_app_environment_id = azurerm_container_app.n8n_app.container_app_environment_id
     # Access URLs
-    internal_fqdn  = "${azurerm_container_app.n8n_app.name}.${azurerm_container_app_environment.n8n_env.default_domain}"
+    internal_fqdn = "${azurerm_container_app.n8n_app.name}.${azurerm_container_app_environment.n8n_env.default_domain}"
+  }
+  sensitive = false
+}
+
+# Trends-MCP Container App Output
+output "trends_mcp_container_app" {
+  description = "Trends-MCP Container App information"
+  value = {
+    id                           = azurerm_container_app.trends_mcp_app.id
+    name                         = azurerm_container_app.trends_mcp_app.name
+    latest_revision_name         = azurerm_container_app.trends_mcp_app.latest_revision_name
+    latest_revision_fqdn         = azurerm_container_app.trends_mcp_app.latest_revision_fqdn
+    outbound_ip_addresses        = azurerm_container_app.trends_mcp_app.outbound_ip_addresses
+    container_app_environment_id = azurerm_container_app.trends_mcp_app.container_app_environment_id
+    # Access URLs
+    internal_fqdn = "${azurerm_container_app.trends_mcp_app.name}.${azurerm_container_app_environment.n8n_env.default_domain}"
+    external_url  = "https://${azurerm_container_app.trends_mcp_app.latest_revision_fqdn}"
   }
   sensitive = false
 }

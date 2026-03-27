@@ -3,24 +3,14 @@ data "azurerm_client_config" "current" {}
 
 # Key Vault
 resource "azurerm_key_vault" "n8n_keyvault" {
-  name                       = "kvl-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
-  location                   = azurerm_resource_group.rg_n8n.location
-  resource_group_name        = azurerm_resource_group.rg_n8n.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = false
-
-  # Network ACLs
-  network_acls {
-    default_action = "Deny"
-    bypass         = "AzureServices"
-
-    # Allowed IP ranges
-    ip_rules = [
-      "20.15.23.80/28"    # Example IP range
-    ]
-  }
+  name                          = "kvl-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
+  location                      = azurerm_resource_group.rg_n8n.location
+  resource_group_name           = azurerm_resource_group.rg_n8n.name
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  sku_name                      = "standard"
+  soft_delete_retention_days    = 7
+  purge_protection_enabled      = false
+  public_network_access_enabled = true
 
   # Access policy for current user/service principal
   access_policy {
@@ -54,20 +44,20 @@ resource "azurerm_key_vault" "n8n_keyvault" {
 
 # Key Vault Private Endpoint
 resource "azurerm_private_endpoint" "keyvault_private_endpoint" {
-  name                = "pe-${module.resource_name.n8n.key_vault}"
+  name                = "pe-kvl-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
   location            = azurerm_resource_group.rg_n8n.location
   resource_group_name = azurerm_resource_group.rg_n8n.name
   subnet_id           = azurerm_subnet.subnet_n8n_private_endpoints.id
 
   private_service_connection {
-    name                           = "psc-${module.resource_name.n8n.key_vault}"
+    name                           = "psc-kvl-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
     private_connection_resource_id = azurerm_key_vault.n8n_keyvault.id
     subresource_names              = ["vault"]
     is_manual_connection           = false
   }
 
   private_dns_zone_group {
-    name                 = "pdz-group-${module.resource_name.n8n.key_vault}"
+    name                 = "pdz-group-kvl-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
     private_dns_zone_ids = [azurerm_private_dns_zone.keyvault.id]
   }
 
@@ -98,6 +88,15 @@ resource "random_password" "n8n_encryption_key" {
 resource "azurerm_key_vault_secret" "n8n_encryption_key" {
   name         = "n8n-encryption-key"
   value        = random_password.n8n_encryption_key.result
+  key_vault_id = azurerm_key_vault.n8n_keyvault.id
+
+  depends_on = [azurerm_key_vault.n8n_keyvault]
+}
+
+# Key Vault Secret for TikTok API Key
+resource "azurerm_key_vault_secret" "tiktok_api_key" {
+  name         = "tiktok-api-key"
+  value        = var.tiktok_api_key != "" ? var.tiktok_api_key : "placeholder-key"
   key_vault_id = azurerm_key_vault.n8n_keyvault.id
 
   depends_on = [azurerm_key_vault.n8n_keyvault]

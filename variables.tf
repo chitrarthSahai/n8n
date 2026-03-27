@@ -100,3 +100,33 @@ variable "latest_tag" {
   default     = "latest"
 }
 
+variable "trends_mcp_image_tag" {
+  type        = string
+  description = "The Docker image tag for Trends-MCP container"
+  default     = "latest"
+}
+
+variable "trends_mcp_source_path" {
+  type        = string
+  description = "Path to the Trends-MCP source directory for building Docker image"
+  default     = "../Repos/Trends-MCP"
+}
+
+variable "tiktok_api_key" {
+  type        = string
+  description = "TikTok RapidAPI key for Trends-MCP service"
+  default     = ""
+  sensitive   = true
+}
+
+variable "news_agent_mcp_image_tag" {
+  type        = string
+  description = "The Docker image tag for News Agent MCP container"
+  default     = "latest"
+}
+
+variable "news_agent_mcp_source_path" {
+  type        = string
+  description = "Path to the News Agent MCP source directory for building Docker image"
+  default     = "../Repos/news-agent"
+}

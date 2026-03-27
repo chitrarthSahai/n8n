@@ -22,13 +22,8 @@ resource "azurerm_private_dns_zone" "container_app_env" {
   tags = var.tags
 }
 
-# Private DNS Zone for Container Registry (if needed for container apps)
-resource "azurerm_private_dns_zone" "container_registry" {
-  name                = "privatelink.azurecr.io"
-  resource_group_name = azurerm_resource_group.rg_n8n.name
-
-  tags = var.tags
-}
+# Private DNS Zone for Container Registry - REMOVED
+# Developer SKU does not support private endpoints
 
 # Virtual Network Links for Key Vault Private DNS Zone
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_link" {
@@ -63,13 +58,5 @@ resource "azurerm_private_dns_zone_virtual_network_link" "container_app_env_link
   tags = var.tags
 }
 
-# Virtual Network Links for Container Registry Private DNS Zone
-resource "azurerm_private_dns_zone_virtual_network_link" "container_registry_link" {
-  name                  = "container-registry-dns-link"
-  resource_group_name   = azurerm_resource_group.rg_n8n.name
-  private_dns_zone_name = azurerm_private_dns_zone.container_registry.name
-  virtual_network_id    = azurerm_virtual_network.vnet_n8n.id
-  registration_enabled  = false
-
-  tags = var.tags
-}
+# Virtual Network Links for Container Registry Private DNS Zone - REMOVED
+# Developer SKU does not support private endpoints

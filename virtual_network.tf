@@ -1,6 +1,6 @@
 # Virtual Network for n8n application
 resource "azurerm_virtual_network" "vnet_n8n" {
-  name                = module.resource_name.n8n.virtual_network
+  name                = "vnet-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}"
   location            = azurerm_resource_group.rg_n8n.location
   resource_group_name = azurerm_resource_group.rg_n8n.name
   address_space       = [var.vnet_address_space]
@@ -10,7 +10,7 @@ resource "azurerm_virtual_network" "vnet_n8n" {
 
 # Subnet for n8n application
 resource "azurerm_subnet" "subnet_n8n_app" {
-  name                 = "${module.resource_name.n8n.subnet}-app"
+  name                 = "subnet-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}-app"
   resource_group_name  = azurerm_resource_group.rg_n8n.name
   virtual_network_name = azurerm_virtual_network.vnet_n8n.name
   address_prefixes     = [var.app_subnet_address_prefix]
@@ -29,7 +29,7 @@ resource "azurerm_subnet" "subnet_n8n_app" {
 
 # Subnet for private endpoints
 resource "azurerm_subnet" "subnet_n8n_private_endpoints" {
-  name                 = "${module.resource_name.n8n.subnet}-pe"
+  name                 = "subnet-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}-pe"
   resource_group_name  = azurerm_resource_group.rg_n8n.name
   virtual_network_name = azurerm_virtual_network.vnet_n8n.name
   address_prefixes     = [var.private_endpoint_subnet_address_prefix]
@@ -42,7 +42,7 @@ resource "azurerm_subnet" "subnet_n8n_private_endpoints" {
 
 # Network Security Group for application subnet
 resource "azurerm_network_security_group" "nsg_n8n_app" {
-  name                = "${module.resource_name.n8n.network_security_group}-app"
+  name                = "nsg-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}-app"
   location            = azurerm_resource_group.rg_n8n.location
   resource_group_name = azurerm_resource_group.rg_n8n.name
 
@@ -55,7 +55,7 @@ resource "azurerm_network_security_group" "nsg_n8n_app" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "443"
-    source_address_prefixes    = ["136.226.102.82"]  # Example IP
+    source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
   tags = var.tags
@@ -69,7 +69,7 @@ resource "azurerm_subnet_network_security_group_association" "nsg_association_ap
 
 # Network Security Group for private endpoints subnet
 resource "azurerm_network_security_group" "nsg_n8n_private_endpoints" {
-  name                = "${module.resource_name.n8n.network_security_group}-pe"
+  name                = "nsg-${var.taxonomy.application_acronym}-${var.taxonomy.deployment_environment_acronym}-${var.taxonomy.location_acronym}-pe"
   location            = azurerm_resource_group.rg_n8n.location
   resource_group_name = azurerm_resource_group.rg_n8n.name
 

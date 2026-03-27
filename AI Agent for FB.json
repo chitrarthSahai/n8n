@@ -1,0 +1,57 @@
+{
+  "name": "Facebook Upload Agent (Minimal)",
+  "nodes": [
+    {
+      "id": "facebook_uploader",
+      "name": "facebook_uploader",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        520,
+        260
+      ],
+      "parameters": {
+        "method": "={{$json.Method}}",
+        "url": "={{$json.URL}}",
+        "sendQuery": true,
+        "queryParametersJson": "={{$json.QueryJSON}}",
+        "sendHeaders": true,
+        "headerParametersJson": "={{$json.HeaderJSON}}",
+        "sendBody": true,
+        "jsonBody": "={{$json.BodyJSON}}"
+      },
+      "metadata": {
+        "tool": {
+          "enabled": true,
+          "name": "facebook_uploader"
+        }
+      }
+    },
+    {
+      "id": "Agent",
+      "name": "Agent",
+      "type": "n8n-nodes-base.aiAgent",
+      "typeVersion": 1,
+      "position": [
+        260,
+        260
+      ],
+      "parameters": {
+        "model": "gpt-5",
+        "instructions": "You are an automation agent. You have one tool: `facebook_uploader`.\n\nYou ALWAYS call the tool using the following format:\n\n<facebook_uploader>\n{\n  \"Method\": \"...\",\n  \"URL\": \"...\",\n  \"QueryJSON\": { ... },\n  \"HeaderJSON\": { ... },\n  \"BodyJSON\": { ... }\n}\n</facebook_uploader>\n\nRules:\n- `Method` must be GET, POST, PUT, or DELETE.\n- `URL` must be a valid URL.\n- `QueryJSON`, `HeaderJSON`, and `BodyJSON` must be JSON objects (not strings).\n- If unused, send `{}`.\n- Output **only** the tool call when using it.\n- Do **not** explain the call.\n- Do **not** add extra commentary.\n\nWhen not calling the tool, respond normally with plain text."
+      }
+    }
+  ],
+  "connections": {
+    "Agent": {
+      "main": [
+        [
+          {
+            "node": "facebook_uploader",
+            "type": "tool"
+          }
+        ]
+      ]
+    }
+  }
+}
